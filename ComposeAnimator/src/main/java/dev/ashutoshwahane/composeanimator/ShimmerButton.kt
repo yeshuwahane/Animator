@@ -1,4 +1,4 @@
-package dev.ashutoshwahane.animator.presentation.animation_screens
+package dev.ashutoshwahane.composeanimator
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -12,7 +12,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -39,32 +38,31 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
+/**
+ * [ShimmerButton] creates a customizable button with a shimmer and crouching effect.
+ *
+ * @param text The text to be displayed inside the button. Defaults to "Click Me".
+ * @param onClick The action to be executed when the button is clicked.
+ * @param modifier The [Modifier] to be applied to the button container.
+ * @param shimmerColors A list of colors to be used for the shimmer effect. Defaults to [Color.Yellow, Color.Red, Color.Yellow].
+ * @param shadowColor The color of the shadow behind the button. Defaults to [Color.DarkGray].
+ */
 @Composable
-fun ShimmerButton() {
-
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(10.dp), contentAlignment = Alignment.Center){
-
-        ShimmerCrouchingButton()
-
-    }
-
-
-}
-
-
-@Composable
-fun ShimmerCrouchingButton() {
+fun ShimmerButton(
+    text: String = "Click Me",
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    shimmerColors: List<Color> = listOf(Color.Yellow, Color.Red, Color.Yellow),
+    shadowColor: Color = Color.DarkGray
+) {
     val view = LocalView.current
-
 
     var isPressed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     // Animate shimmer and crouching effect
-    val buttonOffsetY by animateDpAsState(targetValue = if (isPressed) 6.dp else 0.dp)  // Crouch effect
-    val shadowHeight by animateDpAsState(targetValue = if (isPressed) 2.dp else 6.dp)  // Adjust shadow
+    val buttonOffsetY by animateDpAsState(targetValue = if (isPressed) 6.dp else 0.dp)
+    val shadowHeight by animateDpAsState(targetValue = if (isPressed) 2.dp else 6.dp)
 
     // Shimmer animation using infinite transition
     val infiniteTransition = rememberInfiniteTransition()
@@ -79,13 +77,13 @@ fun ShimmerCrouchingButton() {
 
     // Shimmer brush with linear gradient
     val shimmerBrush = Brush.linearGradient(
-        colors = listOf(Color.Yellow, Color.Red, Color.Yellow),
+        colors = shimmerColors,
         start = Offset(shimmerOffsetX, -10f),
         end = Offset(shimmerOffsetX + 300f, 0f)
     )
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
         contentAlignment = Alignment.Center
@@ -95,10 +93,10 @@ fun ShimmerCrouchingButton() {
             modifier = Modifier
                 .fillMaxWidth(0.85f)
                 .height(shadowHeight)
-                .offset(y = buttonOffsetY + 4.dp)  // Slight shadow offset
+                .offset(y = buttonOffsetY + 4.dp)
                 .background(
-                    Color.DarkGray,
-                    shape = RoundedCornerShape(12.dp)  // Corner shape for shadow
+                    shadowColor,
+                    shape = RoundedCornerShape(12.dp)
                 )
         )
 
@@ -109,24 +107,26 @@ fun ShimmerCrouchingButton() {
                 .height(60.dp)
                 .offset(y = buttonOffsetY)
                 .background(
-                    brush = shimmerBrush, // Shimmer brush
-                    shape = RoundedCornerShape(12.dp)  // Button shape
+                    brush = shimmerBrush,
+                    shape = RoundedCornerShape(12.dp)
                 )
                 .border(2.dp, Color.Gray, RoundedCornerShape(12.dp))
                 .clickable {
+                    // Perform haptic feedback when clicked
                     view.performHapticFeedback(HapticFeedbackConstantsCompat.KEYBOARD_TAP)
 
                     isPressed = true
                     scope.launch {
                         delay(150) // Press animation delay
                         isPressed = false
+                        onClick() // Execute the provided onClick action
                     }
                 },
             contentAlignment = Alignment.Center
         ) {
             // Text inside the button
             Text(
-                text = "Play now →",
+                text = text,
                 color = Color.Black,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
@@ -134,9 +134,3 @@ fun ShimmerCrouchingButton() {
         }
     }
 }
-
-
-
-
-
-
